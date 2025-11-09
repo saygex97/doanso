@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Đoán Số</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
+    .box { background: #fff; padding: 20px; border-radius: 10px; width: 400px; margin: auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    button { padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    select, input { padding: 8px; margin-top: 10px; width: 100%; }
+    #ranking { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🎯 TRÒ CHƠI ĐOÁN SỐ</h2><label>Mức độ khó:</label>
+<select id="difficulty">
+  <option value="100">Dễ (1 - 100)</option>
+  <option value="1000">Khó (1 - 1000)</option>
+</select>
+
+<label>Giới hạn số lần đoán:</label>
+<select id="limit">
+  <option value="5">5 lần</option>
+  <option value="10" selected>10 lần</option>
+  <option value="20">20 lần</option>
+</select>
+
+<button onclick="startGame()">Bắt đầu chơi</button>
+
+<div id="gameArea" style="display:none; margin-top:20px;">
+  <p id="status"></p>
+  <input type="number" id="guessInput" placeholder="Nhập số bạn đoán" />
+  <button onclick="makeGuess()">Đoán</button>
+</div>
+
+<div id="ranking"></div>
+
+  </div><script>
+  let secret, attempts, limit;
+
+  function startGame() {
+    const max = parseInt(document.getElementById("difficulty").value);
+    limit = parseInt(document.getElementById("limit").value);
+    secret = Math.floor(Math.random() * max) + 1;
+    attempts = 0;
+
+    document.getElementById("status").innerText = `Tôi đã chọn số từ 1 đến ${max}. Bạn có ${limit} lần đoán.`;
+    document.getElementById("gameArea").style.display = "block";
+  }
+
+  function makeGuess() {
+    const guess = parseInt(document.getElementById("guessInput").value);
+    if (isNaN(guess)) {
+      alert("Vui lòng nhập số hợp lệ!");
+      return;
+    }
+
+    attempts++;
+
+    if (guess < secret) {
+      document.getElementById("status").innerText = `🔻 Số bạn đoán nhỏ hơn! (${attempts}/${limit})`;
+    } else if (guess > secret) {
+      document.getElementById("status").innerText = `🔺 Số bạn đoán lớn hơn! (${attempts}/${limit})`;
+    } else {
+      const name = prompt("Bạn đã thắng! Nhập tên để lưu xếp hạng:") || "Người chơi";
+      saveRanking(name, attempts);
+      showRanking();
+      alert(`Chúc mừng! Bạn đoán đúng sau ${attempts} lần!`);
+      return;
+    }
+
+    if (attempts >= limit) {
+      alert(`💀 Hết lượt! Số bí mật là: ${secret}`);
+    }
+  }
+
+  function saveRanking(name, attempts) {
+    let ranking = JSON.parse(localStorage.getItem("ranking") || "[]");
+    ranking.push({ name, attempts });
+    ranking.sort((a,b) => a.attempts - b.attempts);
+    ranking = ranking.slice(0,10);
+    localStorage.setItem("ranking", JSON.stringify(ranking));
+  }
+
+  function showRanking() {
+    const ranking = JSON.parse(localStorage.getItem("ranking") || "[]");
+    let html = "<h3>🏆 Bảng Xếp Hạng Top 10</h3><ul>";
+    ranking.forEach((r,i) => {
+      html += `<li>${i+1}. ${r.name} - ${r.attempts} lần đoán</li>`;
+    });
+    html += "</ul>";
+    document.getElementById("ranking").innerHTML = html;
+  }
+
+  showRanking();
+</script></body>
+</html>
